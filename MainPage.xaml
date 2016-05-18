@@ -14,21 +14,42 @@
         <SolidColorBrush x:Key="KinectBlueBrush" Color="#ff00BCF2" />
     </Page.Resources>
 
+
     <Grid Margin="10 0 10 0">
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="VSGroup1">
+                <VisualStateGroup.Transitions>
+                    <VisualTransition GeneratedDuration="0:0:0.2"/>
+                </VisualStateGroup.Transitions>
+                <VisualState x:Name="Default"/>
+                <VisualState x:Name="OptionsOpen">
+                    <Storyboard>
+                        <DoubleAnimation Duration="0" To="0" Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="grid" d:IsOptimized="True"/>
+                    </Storyboard>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="VisualStateGroup"/>
+        </VisualStateManager.VisualStateGroups>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Viewbox Grid.Row="1" HorizontalAlignment="Center">
+        <Viewbox HorizontalAlignment="Center" Grid.Column="1" Margin="0">
             <Image Name="theImage" Stretch="UniformToFill" Tapped="theImage_Tapped" />
         </Viewbox>
-
-        <StackPanel Grid.Row="3" HorizontalAlignment="Stretch" Name="statusBar" VerticalAlignment="Bottom">
-            <TextBlock Text="{Binding StatusText}" Foreground="White"/>
-        </StackPanel>
+        <Button Content="Options" VerticalAlignment="Top" Click="Open_Button_Click"></Button>
+        <Grid x:Name="grid" Background="Black" Width="293" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <CompositeTransform TranslateX="-300"/>
+            </Grid.RenderTransform>
+            <Button Content="X" VerticalAlignment="Top" Click="Close_Button_Click" HorizontalAlignment="Right"></Button>
+            <StackPanel Grid.Row="3" HorizontalAlignment="Stretch" Name="statusBar" VerticalAlignment="Top" Margin="0,100,0,0">
+                <TextBlock Text="{Binding StatusText}" Foreground="White"/>
+                <Slider x:Name="sldrCycleRate" Minimum="0" Maximum="20" ValueChanged="sldrCycleRate_ValueChanged" Header="Cycle Rate"  />
+                <Slider x:Name="sldrColorCount" Minimum="0" Maximum="4096"  ValueChanged="sldrColorCount_ValueChanged" TickFrequency="128" SnapsTo="Ticks" Header="Color Count" />
+            </StackPanel>
+        </Grid>
 
     </Grid>
 </Page>

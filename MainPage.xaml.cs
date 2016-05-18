@@ -5,10 +5,12 @@
 //------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel.Resources;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
@@ -21,20 +23,20 @@ namespace Microsoft.Samples.Kinect.DepthBasics
     /// </summary>
     public sealed partial class MainPage : Page, INotifyPropertyChanged
     {
+        private int colorCycleRate = 1;
+
+        private int colorGranularity = 1024;
+
         /// <summary>
         /// Map depth range to byte range
         /// </summary>
-        private const int MapDepthToByte = 8000 / 1024;
+        private int MapDepthToByte = 8000 / 1024;
 
         /// <summary>
         /// Resource loader for string resources
         /// </summary>
-#if WIN81ORLATER
-        private ResourceLoader resourceLoader = ResourceLoader.GetForCurrentView("Resources");
-#else
-        private ResourceLoader resourceLoader = new ResourceLoader("Resources");
-#endif
 
+        private ResourceLoader resourceLoader = ResourceLoader.GetForCurrentView("Resources");
 
         /// <summary>
         /// Size of the RGB pixel in the bitmap
@@ -70,9 +72,6 @@ namespace Microsoft.Samples.Kinect.DepthBasics
         /// Current status text to display
         /// </summary>
         private string statusText = null;
-
-
-        private DispatcherTimer timer = null;
 
         /// <summary>
         /// Initializes a new instance of the MainPage class.
@@ -111,6 +110,8 @@ namespace Microsoft.Samples.Kinect.DepthBasics
             this.StatusText = this.kinectSensor.IsAvailable ? resourceLoader.GetString("RunningStatusText")
                                                             : resourceLoader.GetString("NoSensorStatusText");
 
+            this.Colors = new List<Color> { Color.FromArgb(255, 255, 255, 255) };
+
             // use the window object as the view model in this simple example
             this.DataContext = this;
 
@@ -120,11 +121,6 @@ namespace Microsoft.Samples.Kinect.DepthBasics
 
             // initialize the components (controls) of the window
             this.InitializeComponent();
-        }
-
-        private void Timer_Tick(object sender, object e)
-        {
-            
         }
 
         /// <summary>
@@ -152,6 +148,32 @@ namespace Microsoft.Samples.Kinect.DepthBasics
                     if (this.PropertyChanged != null)
                     {
                         this.PropertyChanged(this, new PropertyChangedEventArgs("StatusText"));
+                    }
+                }
+            }
+        }
+
+        private List<Color> colors;
+        /// <summary>
+        /// Gets or sets the current colors to display
+        /// </summary>
+        public List<Color> Colors
+        {
+            get
+            {
+                return this.colors;
+            }
+
+            set
+            {
+                if (this.colors != value)
+                {
+                    this.colors = value;
+
+                    // notify any bound elements that the text has changed
+                    if (this.PropertyChanged != null)
+                    {
+                        this.PropertyChanged(this, new PropertyChangedEventArgs("Colors"));
                     }
                 }
             }
@@ -221,7 +243,7 @@ namespace Microsoft.Samples.Kinect.DepthBasics
             // we got a frame, convert and render
             if (depthFrameProcessed)
             {
-                Mod = Mod > 255 ? (byte)0 : (byte)(Mod + 1);
+                Mod = Mod > 255 ? (byte)0 : (byte)(Mod + colorCycleRate);
 
                 ConvertDepthData(minDepth, maxDepth);
 
@@ -230,10 +252,6 @@ namespace Microsoft.Samples.Kinect.DepthBasics
         }
 
         private byte Mod;
-        private byte Green;
-        private byte Blue;
-
-
 
         /// <summary>
         /// Converts depth to RGB.
@@ -381,6 +399,27 @@ namespace Microsoft.Samples.Kinect.DepthBasics
         private void theImage_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
         {
             Mod = 0;
+        }
+
+        private void sldrCycleRate_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            colorCycleRate = (int)e.NewValue;
+        }
+
+        private void sldrColorCount_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            colorGranularity = (int)e.NewValue;
+            MapDepthToByte = 8000 / colorGranularity;
+        }
+
+        private void Open_Button_Click(object sender, RoutedEventArgs e)
+        {
+            VisualStateManager.GoToState(this, "OptionsOpen", true);
+        }
+
+        private void Close_Button_Click(object sender, RoutedEventArgs e)
+        {
+            VisualStateManager.GoToState(this, "Default", true);
         }
     }
 }
